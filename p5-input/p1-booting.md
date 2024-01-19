@@ -4,8 +4,6 @@
 
 `BIOS -> bootasm.S -> bootmain.c -> entry.S -> main.c`
 
-### Bios
-
 BIOS does initial hardware check: are the CPUs, memory, disk etc functional? 
 Then it loads the first sector (first 512 bytes) from the disk into memory
 address `0x7c00` and sets processor's instruction pointer to jump to this memory

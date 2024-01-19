@@ -1,4 +1,17 @@
-OBJS = main.o
+OBJS = \
+	console.o\
+	ioapic.o\
+	lapic.o\
+	main.o\
+	mp.o\
+	picirq.o\
+	uart.o\
+	string.o\
+	proc.o\
+	spinlock.o\
+	trapasm.o\
+	trap.o\
+	vectors.o\
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
@@ -75,16 +88,14 @@ bootblock: bootasm.S bootmain.c
 	$(OBJCOPY) -S -O binary -j .text bootblock.o bootblock
 	./sign.pl bootblock
 
-entryother: entryother.S
-	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c entryother.S
-	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7000 -o bootblockother.o entryother.o
-	$(OBJCOPY) -S -O binary -j .text bootblockother.o entryother
-	$(OBJDUMP) -S bootblockother.o > entryother.asm
-
 kernel: $(OBJS) entry.o kernel.ld
 	$(LD) $(LDFLAGS) -T kernel.ld -o kernel entry.o $(OBJS) -b binary
 	$(OBJDUMP) -S kernel > kernel.asm
 	$(OBJDUMP) -t kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernel.sym
+
+
+vectors.S: vectors.pl
+	./vectors.pl > vectors.S
 
 # Prevent deletion of intermediate files, e.g. cat.o, after first build, so
 # that disk image changes after first build are persistent until clean.  More
@@ -96,18 +107,18 @@ kernel: $(OBJS) entry.o kernel.ld
 
 clean: 
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
-	*.o *.d *.asm *.sym bootblock entryother \
-	kernel xv6.img .gdbinit
+	*.o *.d *.asm *.sym bootblock \
+	kernel xv6.img vectors.S \
+	.gdbinit
 
-# run in emulators
 # try to generate a unique GDB port
-GDBPORT = $(shell expr `id -u` % 5000 + 25000)
+GDBPORT = $(shell expr `id -u` % 5000 + 25001)
 # QEMU's gdb stub command line changed in 0.11
 QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 	then echo "-gdb tcp::$(GDBPORT)"; \
 	else echo "-s -p $(GDBPORT)"; fi)
 ifndef CPUS
-	CPUS := 1
+CPUS := 1
 endif
 
 # For debugging

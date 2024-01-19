@@ -56,3 +56,81 @@ stosl(void *addr, int data, int cnt)
                "0" (addr), "1" (cnt), "a" (data) :
                "memory", "cc");
 }
+
+struct gatedesc;
+
+static inline void
+lidt(struct gatedesc *p, int size)
+{
+  volatile ushort pd[3];
+
+  pd[0] = size-1;
+  pd[1] = (uint)p;
+  pd[2] = (uint)p >> 16;
+
+  asm volatile("lidt (%0)" : : "r" (pd));
+}
+
+static inline uint
+readeflags(void)
+{
+  uint eflags;
+  asm volatile("pushfl; popl %0" : "=r" (eflags));
+  return eflags;
+}
+
+static inline void
+cli(void)
+{
+  asm volatile("cli");
+}
+
+
+static inline void
+sti(void)
+{
+  asm volatile("sti");
+}
+
+static inline void
+wfi(void)
+{
+  asm volatile("hlt");
+}
+
+static inline uint
+rcr2(void)
+{
+  uint val;
+  asm volatile("movl %%cr2,%0" : "=r" (val));
+  return val;
+}
+
+
+// Layout of the trap frame built on the stack by the
+// hardware and by trapasm.S, and passed to trap().
+struct trapframe {
+  // registers as pushed by pusha
+  uint edi;
+  uint esi;
+  uint ebp;
+  uint oesp;      // useless & ignored
+  uint ebx;
+  uint edx;
+  uint ecx;
+  uint eax;
+
+  uint trapno;
+
+  // below here defined by x86 hardware
+  uint err;
+  uint eip;
+  ushort cs;
+  ushort padding5;
+  uint eflags;
+
+  // below here only when crossing rings, such as from user to kernel
+  uint esp;
+  ushort ss;
+  ushort padding6;
+};
