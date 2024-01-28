@@ -24,6 +24,9 @@ void            microdelay(int);
 extern int      ismp;
 void            mpinit(void);
 
+// kbd.c
+void            kbdintr(void);
+
 // picirq.c
 void            picenable(int);
 void            picinit(void);

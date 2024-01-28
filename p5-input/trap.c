@@ -30,12 +30,19 @@ idtinit(void)
 void
 trap(struct trapframe *tf)
 {
+  // cprintf("hello interrupts!\n");
   switch(tf->trapno){
-  case T_IRQ0 + IRQ_TIMER:
+  case T_IRQ0 + IRQ_KBD: // for keyboard interrupt
+    // cprintf("keyboard interrupt occured!\n"); -- doesn't work?
+    kbdintr();
+    lapiceoi();
+    break;
+  case T_IRQ0 + IRQ_TIMER: // for timer interrupt
     ticks++;
     lapiceoi();
     break;
   case T_IRQ0 + IRQ_COM1:
+    // cprintf("????\n"); -- instead this is printed
     uartintr();
     lapiceoi();
     break;

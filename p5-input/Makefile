@@ -9,6 +9,7 @@ OBJS = \
 	string.o\
 	proc.o\
 	spinlock.o\
+	kbd.o\
 	trapasm.o\
 	trap.o\
 	vectors.o\
@@ -125,8 +126,10 @@ endif
 # QEMUEXTRA = -no-reboot -d int,cpu_reset
 QEMUOPTS = -drive file=xv6.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA)
 
+# $(QEMU) -nographic $(QEMUOPTS)
+# ctrl + alt + 2 for qemu monitor
 qemu: xv6.img
-	$(QEMU) -nographic $(QEMUOPTS)
+	$(QEMU) -monitor stdio $(QEMUOPTS)
 
 .gdbinit: .gdbinit.tmpl
 	sed "s/localhost:1234/localhost:$(GDBPORT)/" < $^ > $@
